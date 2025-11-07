@@ -2214,7 +2214,7 @@ static void build_subroutines(BuildCtx *ctx)
     | std       5, BASE, -16, S0, pred0
     | ct        ctpr1, pred0                // fff_res(RD)
     | --
-    | ldw       0, S1, STR->sid, S0
+    | ldw       0, S1, STR->hash, S0
     | wait_load S0, 0
     | --
     | andd      0, RA, S0, RA
@@ -6917,12 +6917,12 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
         | wait_load RB, 0
         | --
         | ldw       3, RB, TAB->hmask, S0   // RB = GCtab *, RC = GCstr *
-        | ldw       5, RC, STR->sid, S1
+        | ldw       5, RC, STR->hash, S1
         | --
         | ldd       3, RB, TAB->node, T2
         | wait_load S0, 1
         | --
-        | andd      4, S0, S1, S1           // idx = str->sid & tab->hmask
+        | andd      4, S0, S1, S1           // idx = str->hash & tab->hmask
         | --
         | shld      3, S1, 0x5, S0
         | shld      4, S1, 0x3, S1
@@ -7118,13 +7118,13 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
         | --
         | ldw       3, RB, TAB->hmask, S0, pred0    // RB = GCtab *, RC = GCstr *
         | shld      4, T1, 0x2f, T1
-        | ldw       5, RC, STR->sid, S1, pred0
+        | ldw       5, RC, STR->hash, S1, pred0
         | ct        ctpr1, ~pred0           // vmeta_tgetv(TODO)
         | --
         | wait_load S0, 1
         | wait_load S1, 1
         | --
-        | andd      4, S0, S1, S1           // idx = str->sid & tab->hmask
+        | andd      4, S0, S1, S1           // idx = str->hash & tab->hmask
         | ct        ctpr2                   // BC_TGETS_Z(S1, RA_E, RC, T1, T2)
         | --
         break;
@@ -7153,19 +7153,19 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
         | shld      0, T1, 47, T1
         | ldwsm     3, RB, TAB->hmask, S0
         | cmpesb    4, S2, LJ_TTAB, pred0
-        | ldwsm     5, RC, STR->sid, S1
+        | ldwsm     5, RC, STR->hash, S1
         | --
         | pipe_extract 0, 1, 2, 3, 4
         | lddsm     5, RB, TAB->node, T2
         | wait_pred_ct pred0, 1
         | wait_load S0, 1
         | --
-        | andd      4, S0, S1, S1, pred0    // idx = str->sid & tab->hmask
+        | andd      4, S0, S1, S1, pred0    // idx = str->hash & tab->hmask
         | ct        ctpr1, ~pred0           // vmeta_tgets(RB, RC)
         | --
         |->BC_TGETS_Z:
         | // (S1, RA_E, RC, T2, T1)
-        | // S1 = idx = (str->sid & tab->hmask)
+        | // S1 = idx = (str->hash & tab->hmask)
         | // RA_E = dst*8
         | // RC = GCstr *
         | // T2 = MRef *node
@@ -7495,7 +7495,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
         | // RA = src*8, RB = GCtab *, RC = GCstr *
         | ldw       3, RB, TAB->hmask, S0
         | addd      4, 0x0, LJ_TSTR, S2
-        | ldw       5, RC, STR->sid, S1
+        | ldw       5, RC, STR->hash, S1
         | disp      ctpr2, >1
         | --
         | shld      4, S2, 0x2f, S2
@@ -7503,7 +7503,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
         | disp      ctpr1, >2
         | wait_load S0, 1
         | --
-        | andd      3, S0, S1, S1           // idx = str->sid & tab->hmask
+        | andd      3, S0, S1, S1           // idx = str->hash & tab->hmask
         | ord       4, S2, RC, S2
         | addd      2, 0x0, 0x0, T1
         | --
