@@ -468,12 +468,13 @@ static void asm_tvstore64(ASMState *as, Reg base, int32_t ofs, IRRef ref)
 }
 
 /* Get pointer to TValue. */
-static void asm_tvptr(ASMState *as, Reg dest, IRRef ref, MSize mode)
+//TODO: E2K compatibility
+static void asm_tvptr(ASMState *as, Reg dest, IRRef ref/*, MSize mode*/)
 {
-  if ((mode)) {
+  // if ((mode)) {
     IRIns *ir = IR(ref);
     if (irt_isnum(ir->t)) {
-      if (irref_isk(ref) && !(mode)) {
+      if (irref_isk(ref) /*&& !(mode)*/) {
         /* Use the number constant itself as a TValue. */
         emit_loada(as, dest, ir_knum(ir));
         return;
@@ -484,7 +485,7 @@ static void asm_tvptr(ASMState *as, Reg dest, IRRef ref, MSize mode)
       /* Otherwise use g->tmptv to hold the TValue. */
       asm_tvstore64(as, dest, 0, ref);
     }
-  }
+  // }
   emit_loada(as, dest, &J2G(as->J)->tmptv);
 }
 
@@ -625,7 +626,7 @@ static void asm_href(ASMState *as, IRIns *ir, IROp merge)
       /* Nothing to do */
       as->mcp = emit_bundle_finalize(as, as->mcp);
     } else if (irt_isstr(kt)) {
-      emit_alopf1_ri(as, 0, E2K_LDW, key, (intptr_t)offsetof(GCstr, sid),
+      emit_alopf1_ri(as, 0, E2K_LDW, key, (intptr_t)offsetof(GCstr, hash),
                      tmp1, &as->mcp);
     } else { /*  Must match with hash*() in lj_tab.c. */
       emit_alopf1_rr(as, 0, E2K_SUBS, tmp1, tmp2, tmp1, &as->mcp);
@@ -1545,24 +1546,24 @@ static void asm_head_root_base(ASMState *as)
 }
 
 /* Coalesce BASE register for a side trace. */
-static Reg asm_head_side_base(ASMState *as, IRIns *irp)
+static RegSet asm_head_side_base(ASMState *as, IRIns *irp, RegSet allow)
 {
-  IRIns *ir = IR(REF_BASE);
-  Reg r = ir->r;
-  if (ra_hasreg(r)) {
-    ra_free(as, r);
-    if (rset_test(as->modset, r) || irt_ismarked(ir->t))
-      ir->r = RID_INIT; /* No inheritance for modified BASE register. */
-    if (irp->r == r) {
-      return r;  /* Same BASE register already coalesced. */
-    } else if (ra_hasreg(irp->r) && rset_test(as->freeset, irp->r)) {
-      emit_movrr(as, 0, r, irp->r); /* Move from coalesced parent reg. */
-      return irp->r;
-    } else {
-      emit_getgl(as, r, jit_base);  /* Otherwise reload BASE. */
-    }
+  IRIns *ir;
+  asm_head_lreg(as);
+  ir = IR(REF_BASE);
+  if (ra_hasreg(ir->r) && (rset_test(as->modset, ir->r) || irt_ismarked(ir->t)))
+    ra_spill(as, ir);
+  if (ra_hasspill(irp->s)) {
+    rset_clear(allow, ra_dest(as, ir, allow));
+  } else {
+    Reg r = irp->r;
+    lj_assertA(ra_hasreg(r), "base reg lost");
+    rset_clear(allow, r);
+    if (r != ir->r && !rset_test(as->freeset, r))
+      ra_restore(as, regcost_ref(as->cost[r]));
+    ra_destreg(as, ir, r);
   }
-  return RID_NONE;
+  return allow;
 }
 
 

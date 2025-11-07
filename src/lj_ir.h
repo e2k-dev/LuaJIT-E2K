@@ -482,6 +482,7 @@ typedef uint32_t TRef;
 #define TREF_REFMASK		0x0000ffff
 #define TREF_FRAME		0x00010000
 #define TREF_CONT		0x00020000
+#define TREF_KEYINDEX		0x00100000
 
 #define TREF(ref, t)		((TRef)((ref) + ((t)<<24)))
 
