@@ -129,10 +129,11 @@ static Reg asm_fuseahuref(ASMState *as, IRRef ref, int32_t *ofsp, RegSet allow)
         *ofsp = ofs;
         return RID_DISPATCH;
       }
-    } else if (ir->o == IR_TMPREF) {
-      *ofsp = (int32_t)dispofs(as, &J2G(as->J)->tmptv);
-      return RID_DISPATCH;
     }
+    // } else if (ir->o == IR_TMPREF) {
+    //   *ofsp = (int32_t)dispofs(as, &J2G(as->J)->tmptv);
+    //   return RID_DISPATCH;
+    // }
   }
   *ofsp = 0;
   return ra_alloc1(as, ref, allow);
@@ -404,7 +405,7 @@ static void asm_conv(ASMState *as, IRIns *ir)
                                          SXT_WS : SXT_WZ, left, dest, &as->mcp);
         }
       } else {
-        if (st64 && !(ir->op2 & IRCONV_NONE)) {
+        if (st64) {
         /* This is either a 32 bit reg/reg mov which zeroes the hiword
            or a load of the loword from a 64 bit address. */
           left = ra_alloc1(as, ir->op1, RSET_GPR);
@@ -469,10 +470,10 @@ static void asm_tvstore64(ASMState *as, Reg base, int32_t ofs, IRRef ref)
 /* Get pointer to TValue. */
 static void asm_tvptr(ASMState *as, Reg dest, IRRef ref, MSize mode)
 {
-  if ((mode & IRTMPREF_IN1)) {
+  if ((mode)) {
     IRIns *ir = IR(ref);
     if (irt_isnum(ir->t)) {
-      if (irref_isk(ref) && !(mode & IRTMPREF_OUT1)) {
+      if (irref_isk(ref) && !(mode)) {
         /* Use the number constant itself as a TValue. */
         emit_loada(as, dest, ir_knum(ir));
         return;
