@@ -437,8 +437,12 @@
 #define LJ_ARCH_ENDIAN   LUAJIT_LE
 #define LJ_TARGET_E2K    1
 #define LJ_TARGET_EHRETREG 64
+#define LJ_TARGET_JUMPRANGE	28	/* +-2^28 = +-256MB */
+#define LJ_TARGET_MASKSHIFT	1
+#define LJ_TARGET_MASKROT	1
 #define LJ_ARCH_NUMMODE    LJ_NUMMODE_SINGLE
 #define LJ_TARGET_GC64   1
+#define LJ_GPRASFPR     1
 
 #else
 #error "No target architecture defined"
@@ -546,11 +550,6 @@
 #endif
 #endif
 
-#if LJ_TARGET_E2K
-/* NIY */
-#define LJ_ARCH_NOJIT   1
-#endif
-
 /* 64 bit GC references. */
 #if LJ_TARGET_GC64
 #define LJ_GC64			1
@@ -602,6 +601,10 @@
 #endif
 #define LJ_SOFTFP		(!LJ_ARCH_HASFPU)
 #define LJ_SOFTFP32		(LJ_SOFTFP && LJ_32)
+
+#ifndef LJ_GPRASFPR
+#define LJ_GPRASFPR     0
+#endif
 
 #if LJ_ARCH_ENDIAN == LUAJIT_BE
 #define LJ_LE			0
