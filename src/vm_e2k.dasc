@@ -4775,7 +4775,7 @@ static void build_subroutines(BuildCtx *ctx)
     | ldwsm     2, PC, 4, INSN_B
     | lddsm     3, BASE, -8, T3
     | lddsm     5, DISPATCH, DISPATCH_J(trace), S0
-    | disp      ctpr1, extern lj_err_trace
+    | disp      ctpr1, extern lj_err_run
     | --
     | ldd       0, STACK, SAVE_L, RB           // Reload, need it only for vm_exit_interp
     | cmpbdb    1, PRET1, -LUA_ERRERR, pred0   // Check for error from exit.
